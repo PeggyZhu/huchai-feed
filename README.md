@@ -4,6 +4,48 @@
 
 征收、动迁带来的换房需求，是阅读这组成交量的背景。站点只存档和对比公开的网签套数，不列地块，也不判断哪一块会拆。
 
+## 怎么更新数据
+
+自动抓取目前过不了网上房地产的拦截（HTTP 412），所以每周定时任务会失败，`fangdi.json` 保持上次成功的版本。要更新数字，用下面三种办法里的一种。三种都走同一套合并：追加单日、更新 `fangdi.json`、写下 `snapshots/写入日.json`。不会覆盖没有 `origin` 的人工收录，也不会改已经标成完整月的数字（例如 2026-10 的 24653）。套数从你自己打开的页面上读，不要猜。
+
+### 在 GitHub 上录入
+
+合并进 `main`，并且 Actions 有写权限之后：
+
+1. 用普通浏览器打开 <https://www.fangdi.com.cn/old_house/old_house.html>，记下昨日成交套数和它对应的日期。页面打不开就停，不要填一个估计值。
+2. 打开本仓库的 **Actions** → **refresh** → **Run workflow**。
+3. **成交套数**填整数，**成交日**填 `YYYY-MM-DD`（是昨天，不是点击当天）。面积可以空着。
+4. 套数和 JSON 只填一种。要贴 JSON 时放进 **JSON** 框，并且整段只有一行，例如 `{"deals":697,"date":"2026-11-13"}`。多日写成一行数组：`[{"deals":697,"date":"2026-11-13"},{"deals":710,"date":"2026-11-14"}]`。一份带 `daily` 数组的快照太长，用下面的 `--file`，不要塞进这个输入框。
+5. 运行。测试通过、数字有变化时，`github-actions[bot]` 会把 `fangdi.json` 和 `snapshots/` 提交到 `main`。随后 `pages` 会更新页面。
+6. 四个输入都空着，等于再试一次在线抓取。源站仍返回 412 时这次运行失败，仓库保持原样。
+
+每周一 10:00（北京时间）仍会自动试一次抓取。源站继续拦截时，这次定时运行会失败。要用上面的手动录入来更新。不要执行挑战脚本，也不要改请求去绕过拦截。
+
+### 在自己的电脑上录入
+
+```bash
+python3 -m huchai import --deals 697 --date 2026-11-13
+python3 -m huchai import --deals 697 --date 2026-11-13 --area 54928.77
+python3 -m huchai import --file day.json
+python3 -m huchai import --deals 697 --date 2026-11-13 --dry-run
+```
+
+`day.json` 可以是单日对象、对象数组，或带 `daily` / `days` / `observations` 数组的快照。快照里用每天的 `key` 和 `deals`。成交日必须写在文件里，命令不会把缺日期的记录当成昨天。`--dry-run` 只打印，不写文件。
+
+确认 `fangdi.json` 和 `snapshots/` 的变化后，自己提交并推送到 `main`。
+
+同一天的数字填错了，可以再导一次正确的套数。已经带 `origin`（`manual` 或 `fangdi`）的那一天会被改掉。没有 `origin` 的人工收录（现在这几条历史单日）不能改。
+
+### 在能正常打开源站的电脑上抓取
+
+如果这台电脑用普通请求就能拿到 JSON（页面没有要求你去过验证，请求也没有被改造成绕过拦截）：
+
+```bash
+python3 -m huchai crawl
+```
+
+有变化再提交 `fangdi.json` 和 `snapshots/` 并推送。GitHub 上的定时任务用的是同一条命令；那边现在会被 412 拦住，失败是预期结果。
+
 ## 数据来源
 
 [网上房地产](https://www.fangdi.com.cn/old_house/old_house.html)（上海市房地产交易中心）二手房频道的昨日成交：
@@ -24,7 +66,7 @@
 | `snapshots/YYYY-MM-DD.json` | 按快照日留下的历史。现有五份来自原来的提交，字节原样保留 |
 | `snapshots/index.json` | 历史目录 |
 | `site/` | 静态页的源文件 |
-| `huchai/` | 爬虫、合并、信号和站点构建。只用 Python 标准库 |
+| `huchai/` | 爬虫、录入、合并、信号和站点构建。只用 Python 标准库 |
 
 一份快照里：
 
@@ -34,15 +76,15 @@
 - `monthly`：月份。`partial: true` 表示未完月
 - `daily`：已经收录的单日，不是一条不缺日的日序列
 
-`snapshots/` 里 2026-10-18 到 2026-11-09 这五份是从 git 历史迁出来的人工快照。爬虫写新文件时会加上 `"writer": "huchai-feed"`，并且拒绝覆盖没有这个标记的归档。
+`snapshots/` 里 2026-10-18 到 2026-11-09 这五份是从 git 历史迁出来的人工快照。爬虫或录入写新文件时会加上 `"writer": "huchai-feed"`。录入还会加上 `"ingest": "import"`，页面据此说明这份快照不是自动抓取。两种写入都拒绝覆盖没有 `writer` 的归档。
 
 ## 自动更新
 
 `.github/workflows/crawl.yml`
 
-- 每周一 02:00 UTC（北京时间周一 10:00）
-- 也可以在 Actions 里手动跑 `crawl`
-- 先跑测试，再抓取
+- 每周一 02:00 UTC（北京时间周一 10:00）自动抓取一次
+- 也可以在 Actions 里手动跑 `refresh`。填了成交套数和成交日，或贴了一行 JSON，就按录入更新，不访问源站。四个输入都空着才抓取
+- 先跑测试，再录入或抓取
 - 只有快照真的变了才提交并推送
 - 源站返回拦截页、空数据或残缺数据时，进程以非 0 退出，**不改** `fangdi.json`
 
@@ -58,6 +100,7 @@
 
 ```bash
 python3 -m unittest discover -s tests -v
+python3 -m huchai import --deals 697 --date 2026-11-13 --dry-run
 python3 -m huchai crawl --dry-run
 python3 -m huchai crawl --fixture tests/fixtures/sell_ok.json --now 2026-11-14 --dry-run
 python3 -m huchai build --out dist
@@ -93,6 +136,6 @@ GitHub 托管的 Actions 跑在数据中心，很大概率遇到同一堵墙。�
 2. **Pages。** Settings → Pages → Build and deployment → Source 选 **GitHub Actions**，保存。
 3. 合并到 `main` 后，`pages` workflow 会部署。也可以在 Actions 里手动跑一次 `pages`。
 4. 打开 https://peggyzhu.github.io/huchai-feed/ 核对页面。原始 JSON 在上面的固定地址。
-5. `crawl` 在源站仍返回 412 时会失败。这不需要修，数据不会被空文件覆盖。源站恢复后，用 Actions 里的 **Run workflow** 再试。
+5. 源站仍返回 412 时，每周的自动抓取会失败，数据不会被空文件覆盖。更新数字用上面的「怎么更新数据」：在 Actions 的 **refresh** 里填套数和成交日，或在本机运行 `python3 -m huchai import`。
 
 没有自定义域名，也没有付费托管或付费接口。

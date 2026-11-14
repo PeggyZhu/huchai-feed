@@ -10,15 +10,7 @@ from zoneinfo import ZoneInfo
 from huchai.client import UrllibTransport
 from huchai.merge import merge_observation
 from huchai.parse import parse_observation
-from huchai.snapshot import (
-    assert_preserves,
-    atomic_write,
-    dump,
-    index_document,
-    load_history,
-    load_json,
-    validate_snapshot,
-)
+from huchai.snapshot import assert_preserves, dump, load_json, publish_latest, validate_snapshot
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 
@@ -60,22 +52,6 @@ def run_crawl(
         print("dry-run: no files written")
         return 0
 
-    _publish(root, merged)
+    publish_latest(root, merged)
     print(f"wrote fangdi.json and snapshots/{merged['updated']}.json")
     return 0
-
-
-def _publish(root: Path, merged: dict) -> None:
-    updated = merged["updated"]
-    destination = root / "snapshots" / f"{updated}.json"
-    if destination.exists():
-        previous = load_json(destination)
-        if previous.get("writer") != "huchai-feed":
-            raise ValueError(f"refusing to overwrite archived snapshot {destination.name}")
-    text = dump(merged)
-    # Snapshot file first, then the latest alias. A crash in between leaves the
-    # archive ahead of fangdi.json; it never replaces fangdi.json with an empty file.
-    atomic_write(destination, text)
-    atomic_write(root / "fangdi.json", text)
-    snapshots = load_history(root)
-    atomic_write(root / "snapshots" / "index.json", dump(index_document(snapshots)))

@@ -8,25 +8,35 @@ import datetime as dt
 
 from huchai.client import API_URL
 from huchai.parse import Observation
+from huchai.snapshot import REVISABLE_ORIGINS
 
 SOURCE = "网上房地产（fangdi.com.cn 二手房昨日网签，含商业、车位）"
 DAILY_NOTE = "含商业、车位。网上房地产二手房昨日网签。"
 
 
-def merge_observation(snapshot: dict, observation: Observation, *, updated: str) -> tuple[dict, bool]:
+def merge_observation(
+    snapshot: dict,
+    observation: Observation,
+    *,
+    updated: str,
+    origin: str = "fangdi",
+    note: str | None = None,
+    source_name: str | None = None,
+    ingest: str = "crawl",
+) -> tuple[dict, bool]:
     """Return ``(document, changed)``. The input snapshot is not mutated."""
 
     existing = _find(snapshot["daily"], observation.date)
     if existing is not None and int(existing["deals"]) == observation.deals and snapshot["asOf"] >= observation.date:
         return snapshot, False
-    if existing is not None and int(existing["deals"]) != observation.deals and existing.get("origin") != "fangdi":
+    if existing is not None and int(existing["deals"]) != observation.deals and existing.get("origin") not in REVISABLE_ORIGINS:
         raise ValueError(
             f"refusing to overwrite hand-curated {observation.date}: "
-            f"{existing['deals']} vs crawled {observation.deals}"
+            f"{existing['deals']} vs {observation.deals}"
         )
 
     merged = copy.deepcopy(snapshot)
-    row = _daily_row(observation)
+    row = _daily_row(observation, origin=origin, note=note)
     if existing is None:
         merged["daily"].append(row)
     else:
@@ -41,8 +51,9 @@ def merge_observation(snapshot: dict, observation: Observation, *, updated: str)
     if observation.date >= merged["asOf"]:
         merged["asOf"] = observation.date
     merged["updated"] = updated
-    merged["source"] = SOURCE
+    merged["source"] = source_name or SOURCE
     merged["writer"] = "huchai-feed"
+    merged["ingest"] = ingest
     merged["endpoint"] = API_URL
     _recompute_month(merged, observation.date[:7])
     if observation.date[:7] == previous_as_of[:7] or merged["asOf"][:7] != previous_as_of[:7]:
@@ -50,13 +61,13 @@ def merge_observation(snapshot: dict, observation: Observation, *, updated: str)
     return merged, True
 
 
-def _daily_row(observation: Observation) -> dict:
+def _daily_row(observation: Observation, *, origin: str, note: str | None) -> dict:
     row = {
         "key": observation.date,
         "deals": observation.deals,
         "sourced": True,
-        "origin": "fangdi",
-        "note": DAILY_NOTE,
+        "origin": origin,
+        "note": note or DAILY_NOTE,
     }
     if observation.area is not None:
         row["area"] = round(observation.area, 2)

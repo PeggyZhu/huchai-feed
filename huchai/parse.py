@@ -49,6 +49,8 @@ def raise_if_blocked(status: int, body: str, url: str) -> None:
         "网上房地产拒绝了这次抓取（反爬拦截，未拿到成交 JSON）。\n"
         "爬虫不会执行挑战脚本，也不会绕过验证。\n"
         "现有 fangdi.json 和 snapshots/ 保持原样。\n"
+        "要用浏览器里看到的套数更新，请运行：\n"
+        "python3 -m huchai import --deals 套数 --date YYYY-MM-DD\n"
         f"HTTP {status} {url}（{marker}）。"
     )
 

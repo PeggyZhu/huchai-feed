@@ -55,6 +55,7 @@ class MergeTests(unittest.TestCase):
         self.assertEqual(merged["updated"], "2026-11-14")
         self.assertEqual(merged["asOf"], "2026-11-13")
         self.assertEqual(merged["writer"], "huchai-feed")
+        self.assertEqual(merged["ingest"], "crawl")
         self.assertEqual(merged["monthly"], current["monthly"])
         self.assertEqual([row["deals"] for row in current["daily"]], [1615, 1631, 1505, 1071])
         self.assertEqual(merged["daily"][-1]["deals"], 697)

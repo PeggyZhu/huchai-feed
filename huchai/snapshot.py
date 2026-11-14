@@ -8,6 +8,9 @@ from pathlib import Path
 
 SNAP_NAME = re.compile(r"^\d{4}-\d{2}-\d{2}\.json$")
 REQUIRED = ("updated", "asOf", "source", "mtd", "monthly", "daily")
+# Rows the crawler or the import command wrote may be corrected later.
+# Hand-curated rows have no origin and stay frozen.
+REVISABLE_ORIGINS = frozenset({"fangdi", "manual"})
 
 
 def dump(document: dict) -> str:
@@ -97,7 +100,7 @@ def assert_preserves(previous: dict, merged: dict) -> None:
     for key, row in old_days.items():
         if key not in new_days:
             raise ValueError(f"refusing to drop daily {key}")
-        if new_days[key]["deals"] != row["deals"] and row.get("origin") != "fangdi":
+        if new_days[key]["deals"] != row["deals"] and row.get("origin") not in REVISABLE_ORIGINS:
             raise ValueError(f"refusing to overwrite hand-curated daily {key}")
 
     old_months = {row["key"]: row for row in previous["monthly"]}
@@ -108,3 +111,22 @@ def assert_preserves(previous: dict, merged: dict) -> None:
         frozen = not row.get("partial")
         if frozen and new_months[key].get("deals") != row.get("deals"):
             raise ValueError(f"refusing to overwrite complete month {key}")
+
+
+def publish_latest(root: Path, merged: dict) -> None:
+    """Write the new snapshot, then the latest alias, then the index.
+
+    A hand-curated archive (no ``writer``) is never replaced. A crash after
+    the snapshot file is written leaves fangdi.json on the previous good copy.
+    """
+
+    updated = merged["updated"]
+    destination = root / "snapshots" / f"{updated}.json"
+    if destination.exists():
+        previous = load_json(destination)
+        if previous.get("writer") != "huchai-feed":
+            raise ValueError(f"refusing to overwrite archived snapshot {destination.name}")
+    text = dump(merged)
+    atomic_write(destination, text)
+    atomic_write(root / "fangdi.json", text)
+    atomic_write(root / "snapshots" / "index.json", dump(index_document(load_history(root))))

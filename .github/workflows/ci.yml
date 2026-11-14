@@ -15,6 +15,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m huchai crawl --fixture tests/fixtures/sell_ok.json --now 2026-11-14 --dry-run
+          python3 -m huchai import --deals 697 --date 2026-11-13 --now 2026-11-14 --dry-run
           git diff --exit-code
           test -z "$(git ls-files --others --exclude-standard)"
       - name: Build the site

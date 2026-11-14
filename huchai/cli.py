@@ -12,6 +12,7 @@ from pathlib import Path
 from huchai.build_site import build_site
 from huchai.crawl import run_crawl
 from huchai.errors import SourceBlocked, SourceError
+from huchai.ingest import run_import
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -23,6 +24,15 @@ def main(argv: list[str] | None = None) -> int:
     crawl.add_argument("--dry-run", action="store_true", help="请求并打印结果，不写文件")
     crawl.add_argument("--fixture", type=Path, help="用本地 JSON 代替网络请求")
     crawl.add_argument("--now", help="抓取日，上海日期 YYYY-MM-DD；默认是今天")
+
+    incoming = sub.add_parser("import", help="用维护者录入的套数或 JSON 更新快照，不访问源站")
+    incoming.add_argument("--root", type=Path, default=Path("."))
+    incoming.add_argument("--dry-run", action="store_true", help="打印将写入的快照，不写文件")
+    incoming.add_argument("--now", help="写入日，上海日期 YYYY-MM-DD；默认是今天")
+    incoming.add_argument("--deals", type=int, help="成交套数")
+    incoming.add_argument("--date", help="成交日 YYYY-MM-DD。和 --deals 一起用，不会默认成昨天")
+    incoming.add_argument("--area", type=float, help="成交面积（平方米），可省略")
+    incoming.add_argument("--file", type=Path, help="JSON：单日、数组，或带 daily/days/observations 的快照")
 
     build = sub.add_parser("build", help="生成 dist/ 静态站点")
     build.add_argument("--root", type=Path, default=Path("."))
@@ -37,6 +47,17 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "crawl":
             today = dt.date.fromisoformat(args.now) if args.now else None
             return run_crawl(args.root, dry_run=args.dry_run, fixture=args.fixture, now=today)
+        if args.command == "import":
+            today = dt.date.fromisoformat(args.now) if args.now else None
+            return run_import(
+                args.root,
+                dry_run=args.dry_run,
+                now=today,
+                deals=args.deals,
+                trade_date=args.date,
+                area=args.area,
+                file=args.file,
+            )
         if args.command == "build":
             print(build_site(args.root, args.out))
             return 0

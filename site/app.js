@@ -33,7 +33,9 @@ function renderSummary(snapshot) {
   const host = document.getElementById("summary");
   host.replaceChildren();
   const banner = el("p", "banner-note");
-  if (snapshot.writer === "huchai-feed") {
+  if (snapshot.ingest === "import") {
+    banner.textContent = "这份最新快照是维护者录入的网签套数，不是这次自动抓取。";
+  } else if (snapshot.writer === "huchai-feed") {
     banner.textContent = "这份最新快照由爬虫写入，来源是网上房地产的二手房昨日网签。";
   } else {
     banner.textContent = "最新快照仍是已核对的人工收录（" + snapshot.updated + "）。自动抓取成功之前，这里不会被空数据覆盖。";
