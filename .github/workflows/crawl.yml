@@ -1,0 +1,39 @@
+name: crawl
+
+# Monday 02:00 UTC is Monday 10:00 in Shanghai, after the morning net-sign
+# print. Weekly matches the original README. The endpoint only returns
+# yesterday, so once the source accepts this client the cron can be changed
+# to `0 2 * * *` (still two requests a day) to avoid missing days.
+on:
+  schedule:
+    - cron: "0 2 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: huchai-crawl
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Fetch yesterday's net-sign total
+        run: python3 -m huchai crawl
+      - name: Commit when the snapshot changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- fangdi.json snapshots && [ -z "$(git ls-files --others --exclude-standard -- fangdi.json snapshots)" ]; then
+            echo "No data change. Leaving the repository as it is."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- fangdi.json snapshots
+          git commit -m "Update fangdi net-sign snapshot"
+          git push

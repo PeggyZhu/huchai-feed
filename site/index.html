@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="沪拆信号：上海二手房网签快照。对比网上房地产公布的成交变化。">
+  <title>沪拆信号</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='2' fill='%239f2d2d'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#signals">跳到信号</a>
+  <header class="banner">
+    <p class="stamp">网签</p>
+    <div>
+      <p class="kicker">上海 · 二手房成交快照</p>
+      <h1 class="wordmark">沪拆信号</h1>
+    </div>
+  </header>
+  <main>
+    <p class="lede">两次快照之间的成交变化，就是这里的「信号」。数字来自上海市「网上房地产」的二手房网签，官方口径含商业和车位。征收、动迁带来的换房需求，是阅读这组成交量的背景；本站不列地块，也不预测哪一块会拆。</p>
+    <section id="summary" aria-live="polite">
+      <p class="loading">正在读取快照…</p>
+    </section>
+    <section id="signals">
+      <h2>这一期信号</h2>
+      <div id="signal-list"></div>
+    </section>
+    <section>
+      <h2>走势</h2>
+      <p class="legend">信号卡片里，套数变多用红色，变少用绿色。柱子只画已经收录的套数，缺日不会被补成 0。</p>
+      <div id="charts"></div>
+    </section>
+    <section>
+      <h2>最新快照</h2>
+      <div id="tables"></div>
+    </section>
+    <section>
+      <h2>快照沿革</h2>
+      <div id="history"></div>
+    </section>
+    <section>
+      <h2>更早的信号</h2>
+      <div id="earlier"></div>
+    </section>
+  </main>
+  <footer>
+    <p>原始数据：<a href="fangdi.json">最新快照 fangdi.json</a> · <a href="signals.json">信号 signals.json</a> · <a href="snapshots/index.json">快照目录</a></p>
+    <p>来源：<a href="https://www.fangdi.com.cn/old_house/old_house.html">网上房地产 · 二手房</a>。接口为 <a href="https://www.fangdi.com.cn/oldhouse/getSHYesterdaySell.action">昨日成交</a>。套数含商业和车位，均价会被拉低，这里以套数为主。</p>
+    <p>本站只存档和对比公开数字，不构成交易或征收判断。</p>
+  </footer>
+  <noscript><p class="noscript">需要 JavaScript 才能排版图表。原始 JSON 链接在页脚，不依赖脚本。</p></noscript>
+  <script src="app.js"></script>
+</body>
+</html>
