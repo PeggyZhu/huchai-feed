@@ -1,0 +1,22 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Dry-run writes nothing
+        run: |
+          set -euo pipefail
+          python3 -m huchai crawl --fixture tests/fixtures/sell_ok.json --now 2026-11-14 --dry-run
+          python3 -m huchai import --deals 697 --date 2026-11-13 --now 2026-11-14 --dry-run
+          git diff --exit-code
+          test -z "$(git ls-files --others --exclude-standard)"
+      - name: Build the site
+        run: python3 -m huchai build --out dist

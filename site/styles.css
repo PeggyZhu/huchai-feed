@@ -1,0 +1,182 @@
+:root {
+  --ink: #1c1917;
+  --muted: #5c564e;
+  --paper: #efeae1;
+  --card: #fffdf8;
+  --line: #e3d9cc;
+  --red: #9f2d2d;
+  --green: #1f6b4a;
+  --info: #3f4f66;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "PingFang SC", "Noto Sans SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.skip {
+  position: absolute;
+  left: 12px;
+  top: -40px;
+  background: #fff;
+  padding: 8px 12px;
+}
+
+.skip:focus { top: 8px; }
+
+a { color: var(--red); }
+a:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+
+.banner {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 28px 20px 22px;
+  background: #241c18;
+  color: #f6f1e8;
+}
+
+.kicker {
+  margin: 0;
+  color: #d9c7b4;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.wordmark {
+  margin: 2px 0 0;
+  font-family: "Songti SC", "Noto Serif SC", "SimSun", serif;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.1;
+}
+
+.stamp {
+  margin: 0;
+  border: 1.5px solid #e7b4a8;
+  color: #f0c7bc;
+  padding: 8px 6px;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  writing-mode: vertical-rl;
+}
+
+main {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 8px 20px 48px;
+}
+
+.lede, .legend, .note, footer, .loading {
+  color: var(--muted);
+}
+
+.lede { font-size: 17px; color: var(--ink); }
+
+h2 {
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  font-weight: 650;
+  margin: 32px 0 12px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.card, .signal, .panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.card { padding: 14px 16px; }
+.card .label { margin: 0; color: var(--muted); font-size: 13px; }
+.card .value { margin: 4px 0 0; font-size: 28px; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+.card .sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+
+.banner-note {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  background: #f7efe4;
+  border-left: 3px solid var(--red);
+  color: var(--ink);
+}
+
+.signal-list, .stack { display: flex; flex-direction: column; gap: 10px; }
+
+.signal { padding: 12px 14px; border-left: 4px solid var(--info); }
+.signal.up { border-left-color: var(--red); }
+.signal.down { border-left-color: var(--green); }
+.signal h3 { margin: 0; font-size: 16px; font-weight: 650; }
+.signal p { margin: 4px 0 0; color: var(--muted); }
+
+.tag {
+  display: inline-block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.scroll { overflow-x: auto; padding-bottom: 4px; }
+svg.chart { display: block; min-width: 280px; }
+svg.chart text { fill: var(--muted); font-size: 12px; font-family: inherit; }
+.bar-label { fill: var(--ink); }
+
+.panel { padding: 8px 12px 12px; margin-bottom: 12px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 13px; }
+td.num, th.num { text-align: right; white-space: nowrap; }
+.badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #f3e6d4;
+  color: #6a4b24;
+  font-size: 12px;
+}
+
+details {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+}
+summary { cursor: pointer; font-weight: 650; }
+summary:focus-visible { outline: 2px solid var(--red); }
+
+footer {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 8px 20px 40px;
+  font-size: 14px;
+}
+footer p { margin: 0 0 8px; }
+
+.noscript {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 0 20px;
+  color: var(--red);
+}
+
+@media (max-width: 640px) {
+  .wordmark { font-size: 32px; letter-spacing: 0.08em; }
+  .card .value { font-size: 24px; }
+  main, .banner, footer { padding-left: 16px; padding-right: 16px; }
+}
