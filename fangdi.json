@@ -1,16 +1,65 @@
 {
-  "updated": "2026-11-09",
-  "asOf": "2026-11-01",
-  "source": "网上房地产（澎湃/观点/金融界等转引交叉）",
-  "mtd": { "deals": null, "yoy": null, "through": "2026-11-01", "partial": true, "note": "11月刚启动，公开源仅见11-01单日1071套，无月度累计" },
+  "updated": "2026-11-16",
+  "asOf": "2026-11-15",
+  "source": "网上房地产（维护者录入的二手房网签，含商业、车位）",
+  "mtd": {
+    "deals": null,
+    "yoy": null,
+    "through": "2026-11-15",
+    "partial": true,
+    "note": "已收录 2026-11-01、2026-11-15，中间有缺日，没有完整月内累计。"
+  },
   "monthly": [
-    { "key": "2026-09", "deals": 23581, "sourced": true, "yoy": 15.7, "note": "含商业全月，澎湃等10-03引网上房地产，同比+15.7%。" },
-    { "key": "2026-10", "deals": 24653, "sourced": true, "yoy": 33, "note": "含商业全月。澎湃/观点/金融界等11-01引网上房地产 24653套，同比约+33%（部分源32.9%）。完整月，已去掉 partial。" }
+    {
+      "key": "2026-09",
+      "deals": 23581,
+      "sourced": true,
+      "yoy": 15.7,
+      "note": "含商业全月，澎湃等10-03引网上房地产，同比+15.7%。"
+    },
+    {
+      "key": "2026-10",
+      "deals": 24653,
+      "sourced": true,
+      "yoy": 33,
+      "note": "含商业全月。澎湃/观点/金融界等11-01引网上房地产 24653套，同比约+33%（部分源32.9%）。完整月，已去掉 partial。"
+    }
   ],
   "daily": [
-    { "key": "2026-10-11", "deals": 1615, "sourced": true, "note": "周日，含商业，下半年单日新高" },
-    { "key": "2026-10-17", "deals": 1631, "sourced": true, "note": "含商业，10月单日峰值，年内第四次破1600" },
-    { "key": "2026-10-31", "deals": 1505, "sourced": true, "note": "含商业，月末翘尾" },
-    { "key": "2026-11-01", "deals": 1071, "sourced": true, "note": "含商业，跨月周末，媒体引网上房地产" }
-  ]
+    {
+      "key": "2026-10-11",
+      "deals": 1615,
+      "sourced": true,
+      "note": "周日，含商业，下半年单日新高"
+    },
+    {
+      "key": "2026-10-17",
+      "deals": 1631,
+      "sourced": true,
+      "note": "含商业，10月单日峰值，年内第四次破1600"
+    },
+    {
+      "key": "2026-10-31",
+      "deals": 1505,
+      "sourced": true,
+      "note": "含商业，月末翘尾"
+    },
+    {
+      "key": "2026-11-01",
+      "deals": 1071,
+      "sourced": true,
+      "note": "含商业，跨月周末，媒体引网上房地产"
+    },
+    {
+      "key": "2026-11-15",
+      "deals": 1146,
+      "sourced": true,
+      "origin": "manual",
+      "note": "含商业、车位。由维护者录入的网上房地产二手房网签，不是本次自动抓取。",
+      "area": 88126.08
+    }
+  ],
+  "writer": "huchai-feed",
+  "ingest": "import",
+  "endpoint": "https://www.fangdi.com.cn/oldhouse/getSHYesterdaySell.action"
 }
