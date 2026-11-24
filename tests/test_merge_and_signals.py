@@ -1,42 +1,53 @@
 import datetime as dt
 import json
 import unittest
-from pathlib import Path
 
 from huchai.parse import Observation, parse_observation
 from huchai.merge import merge_observation
 from huchai.signals import signals_document
-from huchai.snapshot import index_document, load_history, load_json
+from huchai.snapshot import index_document, load_history, load_json, validate_snapshot
+from tests.corpus import BASELINE_NAME, HAND_ARCHIVES, ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 TODAY = dt.date(2026, 11, 14)
 
 
 class HistoryTests(unittest.TestCase):
-    def test_latest_file_is_the_newest_archive(self):
-        latest = (ROOT / "fangdi.json").read_bytes()
-        archived = (ROOT / "snapshots" / "2026-11-09.json").read_bytes()
-        self.assertEqual(latest, archived)
+    def test_latest_alias_is_at_least_as_new_as_the_archives(self):
+        latest = load_json(ROOT / "fangdi.json")
+        validate_snapshot(latest)
+        history = load_history(ROOT)
+        newest = history[-1]
+        self.assertGreaterEqual(latest["asOf"], newest["asOf"])
+        self.assertGreaterEqual(latest["updated"], newest["updated"])
+        october = next(row for row in latest["monthly"] if row["key"] == "2026-10")
+        self.assertEqual(october["deals"], 24653)
+        self.assertNotIn("partial", october)
 
     def test_archives_keep_the_hand_curated_anchors(self):
         latest = load_json(ROOT / "fangdi.json")
         months = {row["key"]: row for row in latest["monthly"]}
-        days = {row["key"]: row["deals"] for row in latest["daily"]}
+        days = {row["key"]: row for row in latest["daily"]}
         self.assertEqual(months["2026-09"]["deals"], 23581)
         self.assertEqual(months["2026-09"]["yoy"], 15.7)
         self.assertEqual(months["2026-10"]["deals"], 24653)
         self.assertNotIn("partial", months["2026-10"])
-        self.assertEqual(days["2026-10-11"], 1615)
-        self.assertEqual(days["2026-10-17"], 1631)
-        self.assertEqual(days["2026-10-31"], 1505)
-        self.assertEqual(days["2026-11-01"], 1071)
-        self.assertIsNone(latest["mtd"]["deals"])
+        self.assertEqual(days["2026-10-11"]["deals"], 1615)
+        self.assertEqual(days["2026-10-17"]["deals"], 1631)
+        self.assertEqual(days["2026-10-31"]["deals"], 1505)
+        self.assertEqual(days["2026-11-01"]["deals"], 1071)
+        self.assertNotIn("origin", days["2026-11-01"])
+        baseline = load_json(ROOT / "snapshots" / BASELINE_NAME)
+        self.assertIsNone(baseline["mtd"]["deals"])
         self.assertEqual(
             load_json(ROOT / "snapshots" / "index.json"),
             index_document(load_history(ROOT)),
         )
         for path in (ROOT / "snapshots").glob("????-??-??.json"):
-            self.assertNotIn("writer", json.loads(path.read_text(encoding="utf-8")))
+            document = json.loads(path.read_text(encoding="utf-8"))
+            if path.name in HAND_ARCHIVES:
+                self.assertNotIn("writer", document)
+            elif "writer" in document:
+                self.assertEqual(document["writer"], "huchai-feed")
 
     def test_october_partial_total_is_still_in_that_snapshot(self):
         snap = load_json(ROOT / "snapshots" / "2026-10-26.json")
@@ -48,7 +59,7 @@ class HistoryTests(unittest.TestCase):
 
 class MergeTests(unittest.TestCase):
     def test_new_day_keeps_frozen_months_and_does_not_invent_a_cumulative(self):
-        current = load_json(ROOT / "fangdi.json")
+        current = load_json(ROOT / "snapshots" / BASELINE_NAME)
         observed = parse_observation({"sellcount": 697, "sellarea": 54928.77}, today=TODAY)
         merged, changed = merge_observation(current, observed, updated="2026-11-14")
         self.assertTrue(changed)
@@ -101,20 +112,25 @@ class MergeTests(unittest.TestCase):
 
 
 class SignalTests(unittest.TestCase):
-    def test_latest_signal_is_the_november_open(self):
-        document = signals_document(load_history(ROOT))
-        self.assertEqual(document["from"], "2026-11-02")
-        self.assertEqual(document["to"], "2026-11-09")
+    def test_november_open_signal_remains_in_history(self):
+        history = load_history(ROOT)
+        document = signals_document(history)
+        self.assertEqual(document["from"], history[-2]["updated"])
+        self.assertEqual(document["to"], history[-1]["updated"])
+        pair = document if document["to"] == "2026-11-09" else next(
+            item for item in document["earlier"] if item["to"] == "2026-11-09"
+        )
+        self.assertEqual(pair["from"], "2026-11-02")
         self.assertEqual(
-            [item["title"] for item in document["items"]],
+            [item["title"] for item in pair["items"]],
             [
                 "截至日 2026-10-31 → 2026-11-01",
                 "月内累计 24653 套 → 无累计",
                 "新增单日 2026-11-01：1071 套",
             ],
         )
-        self.assertIn("进入 2026-11", document["items"][1]["detail"])
-        self.assertEqual(document["items"][1]["tone"], "info")
+        self.assertIn("进入 2026-11", pair["items"][1]["detail"])
+        self.assertEqual(pair["items"][1]["tone"], "info")
 
     def test_note_only_snapshot_is_not_called_a_volume_move(self):
         document = signals_document(load_history(ROOT))
