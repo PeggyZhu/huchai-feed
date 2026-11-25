@@ -9,24 +9,14 @@ from huchai.cli import main
 from huchai.crawl import run_crawl
 from huchai.errors import SourceBlocked
 from huchai.snapshot import history_paths, index_document, load_history, load_json
+from tests.corpus import ROOT, frozen_baseline
 
-ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests" / "fixtures" / "sell_ok.json"
 
 
 class CrawlTests(unittest.TestCase):
     def copy_repo(self) -> Path:
-        root = Path(self._tmpdir())
-        shutil.copy(ROOT / "fangdi.json", root / "fangdi.json")
-        shutil.copytree(ROOT / "snapshots", root / "snapshots")
-        return root
-
-    def _tmpdir(self) -> str:
-        import tempfile
-
-        path = tempfile.mkdtemp(prefix="huchai-")
-        self.addCleanup(lambda: shutil.rmtree(path, ignore_errors=True))
-        return path
+        return frozen_baseline(self)
 
     def test_dry_run_and_blocked_fetch_do_not_touch_files(self):
         root = self.copy_repo()
@@ -108,7 +98,9 @@ class BuildTests(unittest.TestCase):
             (ROOT / "snapshots" / "2026-10-18.json").read_bytes(),
         )
         signals = json.loads((out / "signals.json").read_text(encoding="utf-8"))
-        self.assertEqual(signals["to"], "2026-11-09")
+        history = load_history(ROOT)
+        self.assertEqual(signals["to"], history[-1]["updated"])
+        self.assertEqual(signals["from"], history[-2]["updated"])
         self.assertTrue((out / "snapshots" / "index.json").is_file())
         index = json.loads((out / "snapshots" / "index.json").read_text(encoding="utf-8"))
         self.assertEqual(index, index_document(load_history(ROOT)))

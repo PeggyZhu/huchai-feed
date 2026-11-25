@@ -1,23 +1,17 @@
+import datetime as dt
 import json
-import shutil
-import tempfile
 import unittest
 from pathlib import Path
 
 from huchai.cli import main
 from huchai.ingest import IMPORT_NOTE, IMPORT_SOURCE, refresh_command
 from huchai.snapshot import history_paths, load_json
-
-ROOT = Path(__file__).resolve().parents[1]
+from tests.corpus import ROOT, frozen_baseline, live_copy
 
 
 class ImportTests(unittest.TestCase):
     def copy_repo(self) -> Path:
-        root = Path(tempfile.mkdtemp(prefix="huchai-import-"))
-        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
-        shutil.copy(ROOT / "fangdi.json", root / "fangdi.json")
-        shutil.copytree(ROOT / "snapshots", root / "snapshots")
-        return root
+        return frozen_baseline(self)
 
     def test_deals_flag_writes_one_day_and_preserves_archives(self):
         root = self.copy_repo()
@@ -99,7 +93,7 @@ class ImportTests(unittest.TestCase):
 
     def test_snapshot_file_only_adds_new_daily_rows(self):
         root = self.copy_repo()
-        document = load_json(ROOT / "fangdi.json")
+        document = load_json(root / "fangdi.json")
         document["daily"] = list(document["daily"]) + [{"key": "2026-11-13", "deals": 697}]
         payload = root / "snap.json"
         payload.write_text(json.dumps(document), encoding="utf-8")
@@ -171,12 +165,55 @@ class ImportTests(unittest.TestCase):
 
     def test_same_total_again_is_unchanged(self):
         root = self.copy_repo()
+        before = (root / "fangdi.json").read_bytes()
         self.assertEqual(
             main(["import", "--root", str(root), "--deals", "1071", "--date", "2026-11-01", "--now", "2026-11-14"]),
             0,
         )
-        self.assertEqual((root / "fangdi.json").read_bytes(), (ROOT / "fangdi.json").read_bytes())
+        self.assertEqual((root / "fangdi.json").read_bytes(), before)
         self.assertFalse((root / "snapshots" / "2026-11-14.json").exists())
+
+    def test_live_corpus_accepts_one_new_day_without_rewriting_anchors(self):
+        root = live_copy(self)
+        latest = load_json(root / "fangdi.json")
+        existing = {row["key"]: row["deals"] for row in latest["daily"]}
+        taken = {path.stem for path in history_paths(root)}
+        trade = dt.date.fromisoformat(latest["asOf"]) + dt.timedelta(days=1)
+        while trade.isoformat() in existing:
+            trade += dt.timedelta(days=1)
+        now = trade + dt.timedelta(days=1)
+        while now.isoformat() in taken:
+            now += dt.timedelta(days=1)
+        archives = {path.name: path.read_bytes() for path in history_paths(root)}
+        code = main(
+            [
+                "import",
+                "--root",
+                str(root),
+                "--deals",
+                "697",
+                "--date",
+                trade.isoformat(),
+                "--now",
+                now.isoformat(),
+            ]
+        )
+        self.assertEqual(code, 0)
+        merged = load_json(root / "fangdi.json")
+        days = {row["key"]: row for row in merged["daily"]}
+        self.assertEqual(set(days) - set(existing), {trade.isoformat()})
+        for key, deals in existing.items():
+            self.assertEqual(days[key]["deals"], deals)
+        self.assertEqual(days[trade.isoformat()]["deals"], 697)
+        self.assertEqual(days[trade.isoformat()]["origin"], "manual")
+        self.assertEqual(merged["asOf"], trade.isoformat())
+        october = next(row for row in merged["monthly"] if row["key"] == "2026-10")
+        self.assertEqual(october["deals"], 24653)
+        self.assertNotIn("partial", october)
+        self.assertEqual(days["2026-11-01"]["deals"], 1071)
+        self.assertNotIn("origin", days["2026-11-01"])
+        for name, blob in archives.items():
+            self.assertEqual((root / "snapshots" / name).read_bytes(), blob)
 
     def test_refresh_command_matches_the_actions_inputs(self):
         root = self.copy_repo()
