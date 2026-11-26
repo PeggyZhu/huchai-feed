@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "prediction/programmes.schema.json",
+  "title": "征收项目",
+  "description": "一条公开程序。类型与口径必须相同，一条征询不能同时写成决定。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["数据性质", "columns", "rows"],
+  "properties": {
+    "数据性质": {
+      "const": "正式数据"
+    },
+    "说明": {
+      "type": "string"
+    },
+    "columns": {
+      "type": "array",
+      "const": ["项目名", "文号", "类型", "日期", "范围", "来源", "口径"]
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/row"
+      }
+    }
+  },
+  "$defs": {
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["项目名", "文号", "类型", "日期", "范围", "来源", "口径"],
+      "properties": {
+        "项目名": {
+          "type": "string",
+          "minLength": 1
+        },
+        "文号": {
+          "type": "string",
+          "minLength": 1
+        },
+        "类型": {
+          "type": "string",
+          "enum": ["征询", "冻结", "决定", "签约"]
+        },
+        "日期": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "范围": {
+          "type": "string",
+          "minLength": 1
+        },
+        "来源": {
+          "type": "string",
+          "minLength": 1
+        },
+        "口径": {
+          "type": "string",
+          "enum": ["征询", "冻结", "决定", "签约"]
+        }
+      }
+    }
+  }
+}
