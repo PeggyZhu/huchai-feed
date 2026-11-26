@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "prediction/observation-pool.schema.json",
+  "title": "观察池",
+  "description": "周报产出的一行。分数只做形状和上限检查，校验器不计算分数。null 表示不打分、只标注。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["数据性质", "columns", "rows"],
+  "properties": {
+    "数据性质": {
+      "const": "正式数据"
+    },
+    "说明": {
+      "type": "string"
+    },
+    "columns": {
+      "type": "array",
+      "const": ["小区", "档位", "分数分项", "入池日期", "最后证据日期", "理由", "来源", "口径"]
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/row"
+      }
+    }
+  },
+  "$defs": {
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["小区", "档位", "分数分项", "入池日期", "最后证据日期", "理由", "来源", "口径"],
+      "properties": {
+        "小区": {
+          "type": "string",
+          "minLength": 1
+        },
+        "档位": {
+          "type": ["string", "null"],
+          "enum": ["高", "中", "低", null]
+        },
+        "分数分项": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["程序", "量价", "结构"],
+          "properties": {
+            "程序": {
+              "type": ["integer", "null"],
+              "minimum": 0,
+              "maximum": 50
+            },
+            "量价": {
+              "type": ["integer", "null"],
+              "minimum": 0,
+              "maximum": 30
+            },
+            "结构": {
+              "type": ["integer", "null"],
+              "minimum": 0,
+              "maximum": 20
+            }
+          }
+        },
+        "入池日期": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "最后证据日期": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "理由": {
+          "type": "string",
+          "minLength": 1
+        },
+        "来源": {
+          "type": "string",
+          "minLength": 1
+        },
+        "口径": {
+          "type": "string",
+          "enum": ["挂牌价", "评估价", "成交价", "程序"]
+        }
+      }
+    }
+  }
+}

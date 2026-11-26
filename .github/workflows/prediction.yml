@@ -1,0 +1,23 @@
+name: prediction
+
+# Schema check for the demolition-prediction tables.
+# Independent of pages.yml: this job does not build or deploy the site,
+# and it does not read or write fangdi.json or the Monday import flow.
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate prediction tables
+        run: python3 scripts/validate_prediction.py
+      - name: Prediction validator unit tests
+        run: python3 -m unittest tests.test_prediction_validator -v

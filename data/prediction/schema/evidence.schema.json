@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "prediction/evidence.schema.json",
+  "title": "证据台账",
+  "description": "一条公开记录。值按来源原文抄录，不换算。正式文件的数据性质必须是「正式数据」。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["数据性质", "columns", "rows"],
+  "properties": {
+    "数据性质": {
+      "const": "正式数据"
+    },
+    "说明": {
+      "type": "string"
+    },
+    "columns": {
+      "type": "array",
+      "const": ["小区", "区", "字段", "值", "来源URL", "来源日期", "口径", "状态"]
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/row"
+      }
+    }
+  },
+  "$defs": {
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["小区", "区", "字段", "值", "来源URL", "来源日期", "口径", "状态"],
+      "properties": {
+        "小区": {
+          "type": "string",
+          "minLength": 1
+        },
+        "区": {
+          "type": "string",
+          "enum": [
+            "黄浦区",
+            "徐汇区",
+            "长宁区",
+            "静安区",
+            "普陀区",
+            "虹口区",
+            "杨浦区",
+            "闵行区",
+            "宝山区",
+            "嘉定区",
+            "浦东新区",
+            "金山区",
+            "松江区",
+            "青浦区",
+            "奉贤区",
+            "崇明区"
+          ]
+        },
+        "字段": {
+          "type": "string",
+          "minLength": 1
+        },
+        "值": {
+          "type": "string",
+          "minLength": 1
+        },
+        "来源URL": {
+          "type": "string",
+          "minLength": 1
+        },
+        "来源日期": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "口径": {
+          "type": "string",
+          "enum": [
+            "挂牌价",
+            "评估价",
+            "成交价",
+            "网签商业口径",
+            "房管局住房口径",
+            "结构属性",
+            "程序状态"
+          ]
+        },
+        "状态": {
+          "type": "string",
+          "enum": ["已确认", "待核"]
+        }
+      }
+    }
+  }
+}

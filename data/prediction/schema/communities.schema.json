@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "prediction/communities.schema.json",
+  "title": "小区",
+  "description": "小区索引。户数和套均面积只在证据台账已有相同的已确认纯数字原文时填写。口径只有结构属性。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["数据性质", "columns", "rows"],
+  "properties": {
+    "数据性质": {
+      "const": "正式数据"
+    },
+    "说明": {
+      "type": "string"
+    },
+    "columns": {
+      "type": "array",
+      "const": ["名称", "区", "地址/弄号", "户数", "套均面积", "建成年代", "房屋类型", "来源", "口径"]
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/row"
+      }
+    }
+  },
+  "$defs": {
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["名称", "区", "地址/弄号", "户数", "套均面积", "建成年代", "房屋类型", "来源", "口径"],
+      "properties": {
+        "名称": {
+          "type": "string",
+          "minLength": 1
+        },
+        "区": {
+          "type": "string",
+          "enum": [
+            "黄浦区",
+            "徐汇区",
+            "长宁区",
+            "静安区",
+            "普陀区",
+            "虹口区",
+            "杨浦区",
+            "闵行区",
+            "宝山区",
+            "嘉定区",
+            "浦东新区",
+            "金山区",
+            "松江区",
+            "青浦区",
+            "奉贤区",
+            "崇明区"
+          ]
+        },
+        "地址/弄号": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "户数": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "套均面积": {
+          "type": ["number", "null"],
+          "exclusiveMinimum": 0
+        },
+        "建成年代": {
+          "type": ["string", "null"],
+          "pattern": "^\\d{4}$"
+        },
+        "房屋类型": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "来源": {
+          "type": "string",
+          "minLength": 1
+        },
+        "口径": {
+          "type": "string",
+          "enum": ["结构属性"]
+        }
+      }
+    }
+  }
+}
