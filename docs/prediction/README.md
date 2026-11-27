@@ -67,6 +67,12 @@ python3 -m unittest tests.test_prediction_validator -v
 
 `.github/workflows/prediction.yml` 在拉取请求和推送时运行上面的检查。它与 `.github/workflows/pages.yml` 分开：不构建站点，不部署，也不改变周一的网签录入。Pages 工作流失败与否，不由这个任务决定；这个任务失败，也不会去改 Pages 的行为。
 
+## M2
+
+官方公告的抓取、地址解析、小区匹配和程序分在 `huchai/notices/`。规则和样本位置见 [M2.md](M2.md)。
+
+M2 不回填上面的四张正式表，也不把观察池接进页面。样本写在 `samples/m2/`，站点构建不会复制这个目录。
+
 ## 本里程碑不做的事
 
 - 不改 `fangdi.json`、`snapshots/`、手动录入，以及 `pages.yml` 的行为。

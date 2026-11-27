@@ -13,6 +13,7 @@ from huchai.build_site import build_site
 from huchai.crawl import run_crawl
 from huchai.errors import SourceBlocked, SourceError
 from huchai.ingest import run_import
+from huchai.notices.run import run_notices
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -42,6 +43,13 @@ def main(argv: list[str] | None = None) -> int:
     preview.add_argument("--root", type=Path, default=Path("."))
     preview.add_argument("--port", type=int, default=8765)
 
+    notices = sub.add_parser("notices", help="抓取公开征收公告，写出不公开的 M2 样本")
+    notices.add_argument("--root", type=Path, default=Path("."))
+    notices.add_argument("--out", type=Path, default=Path("samples/m2"))
+    notices.add_argument("--since", help="窗口起日 YYYY-MM-DD，默认今天往前 24 个月")
+    notices.add_argument("--until", help="窗口止日 YYYY-MM-DD，默认今天")
+    notices.add_argument("--interval", type=float, default=1.2, help="请求间隔秒数")
+
     args = parser.parse_args(argv)
     try:
         if args.command == "crawl":
@@ -61,6 +69,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "build":
             print(build_site(args.root, args.out))
             return 0
+        if args.command == "notices":
+            since = dt.date.fromisoformat(args.since) if args.since else None
+            until = dt.date.fromisoformat(args.until) if args.until else None
+            return run_notices(args.root, args.out, since=since, until=until, interval=args.interval)
         return _preview(args.root, args.port)
     except SourceBlocked as exc:
         print(exc, file=sys.stderr)
