@@ -7,6 +7,7 @@ from pathlib import Path
 
 from huchai.signals import signals_document
 from huchai.snapshot import dump, history_paths, index_document, load_history, load_json, validate_snapshot
+from huchai.volume import build_document, dump_text
 
 SITE_FILES = ("index.html", "app.js", "styles.css")
 
@@ -33,8 +34,13 @@ def build_site(root: Path, out: Path) -> Path:
         shutil.copyfile(path, snapshot_dir / path.name)
     (snapshot_dir / "index.json").write_text(dump(index_document(snapshots)), encoding="utf-8")
     (out / "signals.json").write_text(dump(signals_document(snapshots)), encoding="utf-8")
+    tiers = out / "tiers"
+    tiers.mkdir()
+    shutil.copyfile(site / "tiers" / "index.html", tiers / "index.html")
+    (tiers / "data.json").write_text(dump_text(build_document(root)), encoding="utf-8")
     (out / ".nojekyll").write_text("", encoding="utf-8")
     _assert_relative_assets(out / "index.html")
+    _assert_relative_assets(tiers / "index.html")
     return out
 
 
