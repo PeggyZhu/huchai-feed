@@ -134,6 +134,8 @@ ALLOWED_FILES = {
     "observation-pool.json",
     "observation-pool.csv",
     "示例数据.json",
+    # Raw deal counts for the volume score. Not one of the four formal tables.
+    "ke_deals_raw.csv",
 }
 
 

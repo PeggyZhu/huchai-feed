@@ -14,6 +14,7 @@ from huchai.crawl import run_crawl
 from huchai.errors import SourceBlocked, SourceError
 from huchai.ingest import run_import
 from huchai.notices.run import run_notices
+from huchai.volume import write_volume_artifacts
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -50,6 +51,9 @@ def main(argv: list[str] | None = None) -> int:
     notices.add_argument("--until", help="窗口止日 YYYY-MM-DD，默认今天")
     notices.add_argument("--interval", type=float, default=1.2, help="请求间隔秒数")
 
+    volume = sub.add_parser("volume", help="从贝壳套数和 M2 样本生成小区页数据与回测")
+    volume.add_argument("--root", type=Path, default=Path("."))
+
     args = parser.parse_args(argv)
     try:
         if args.command == "crawl":
@@ -73,6 +77,11 @@ def main(argv: list[str] | None = None) -> int:
             since = dt.date.fromisoformat(args.since) if args.since else None
             until = dt.date.fromisoformat(args.until) if args.until else None
             return run_notices(args.root, args.out, since=since, until=until, interval=args.interval)
+        if args.command == "volume":
+            data_path, report_path = write_volume_artifacts(args.root)
+            print(data_path)
+            print(report_path)
+            return 0
         return _preview(args.root, args.port)
     except SourceBlocked as exc:
         print(exc, file=sys.stderr)

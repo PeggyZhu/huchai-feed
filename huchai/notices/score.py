@@ -2,8 +2,9 @@
 
 The caps and the tier gates are the rules in docs/prediction/DECISIONS.md.
 Point values below are only a sort key inside the 0–50 程序 cap. They do
-not add a new tier threshold. 量价 is never computed here: M3 owns excess
-gain, and fewer than 3 deals would not be scored anyway. 挂牌价, 评估价 and
+not add a new tier threshold. This module still leaves 量价 as N/A (M3):
+the M2 sample is program evidence only. Deal-count points live in
+huchai.volume and are not written back into that sample. 挂牌价, 评估价 and
 成交价 are not read.
 """
 

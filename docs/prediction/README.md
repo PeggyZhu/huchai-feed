@@ -4,7 +4,7 @@
 
 已确认的决定写在 [DECISIONS.md](DECISIONS.md)。阈值、档位、排除项和路线图以那份记录为准。
 
-公开网站目前仍只发布网签快照。观察池要公开展示在 GitHub Pages，这件事留到 M5，本里程碑不改页面构建。
+公开网站的网签页仍只发布网签快照。观察池周报要到 M5。2026-11-28 另有一页套数预览，接在现有的 GitHub Pages 上：源文件在 `site/tiers/`，`python3 -m huchai build` 写入 `dist/tiers/`。正式四表仍然是空表。`pages.yml` 的触发方式不改。这一页不是 M5 的周报。
 
 ## 周报只读台账，不生成新数字
 
@@ -49,6 +49,7 @@ M5 的周报只能读取证据台账 `data/prediction/evidence.json`，以及校
 | `data/prediction/schema/` | 四张表的 JSON Schema 和表头说明 |
 | `data/prediction/*.csv`、`*.json` | 正式空表 |
 | `data/prediction/示例数据.json` | 唯一的示例文件，不是观察 |
+| `data/prediction/ke_deals_raw.csv` | 贝壳公开成交的套数和日期。不是四张正式表，校验器只允许文件存在，不把它读成台账 |
 | `scripts/validate_prediction.py` | 标准库校验器 |
 | `.github/workflows/prediction.yml` | 单独的校验任务，不部署 Pages |
 

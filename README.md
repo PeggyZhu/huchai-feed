@@ -2,7 +2,7 @@
 
 上海二手房网签快照。每次快照相对上一份的成交变化，就是这个站上的「信号」。
 
-征收、动迁带来的换房需求，是阅读这组成交量的背景。站点只存档和对比公开的网签套数，不列地块，也不判断哪一块会拆。
+征收、动迁带来的换房需求，是阅读这组成交量的背景。网签页只存档和对比公开套数。小区公告和套数分档在单独的一页，见下方「公开页面」。那一页不是投资建议。
 
 ## 怎么更新数据
 
@@ -66,6 +66,7 @@ python3 -m huchai crawl
 | `snapshots/YYYY-MM-DD.json` | 按快照日留下的历史。现有五份来自原来的提交，字节原样保留 |
 | `snapshots/index.json` | 历史目录 |
 | `site/` | 静态页的源文件 |
+| `site/tiers/` | 小区信号页。`data.json` 由 `python3 -m huchai volume` 生成 |
 | `huchai/` | 爬虫、录入、合并、信号和站点构建。只用 Python 标准库 |
 
 一份快照里：
@@ -105,9 +106,10 @@ python3 -m huchai crawl --dry-run
 python3 -m huchai crawl --fixture tests/fixtures/sell_ok.json --now 2026-11-14 --dry-run
 python3 -m huchai build --out dist
 python3 -m huchai preview
+python3 -m huchai volume
 ```
 
-`--dry-run` 只打印将要写入的快照。`--fixture` 用本地 JSON 代替网络，方便不访问源站做检查。真正写入时去掉 `--dry-run`。
+`--dry-run` 只打印将要写入的快照。`--fixture` 用本地 JSON 代替网络，方便不访问源站做检查。真正写入时去掉 `--dry-run`。`python3 -m huchai volume` 用贝壳套数和 M2 样本重写 `site/tiers/data.json` 与 `samples/m2/volume_backtest.md`。
 
 预览地址是 `http://127.0.0.1:8765/`。页面里的 JSON 和样式都是相对路径，放在 `/huchai-feed/` 子路径下也同样能打开。
 
@@ -116,11 +118,13 @@ python3 -m huchai preview
 构建结果由 `.github/workflows/pages.yml` 用 `actions/deploy-pages` 发布。
 
 - 页面：https://peggyzhu.github.io/huchai-feed/
+- 小区信号：https://peggyzhu.github.io/huchai-feed/tiers/
+- 小区数据：https://peggyzhu.github.io/huchai-feed/tiers/data.json
 - 最新 JSON：https://peggyzhu.github.io/huchai-feed/fangdi.json
 - 信号：https://peggyzhu.github.io/huchai-feed/signals.json
 - 目录：https://peggyzhu.github.io/huchai-feed/snapshots/index.json
 
-页面是静态的，没有后端。它展示最新快照、月度和已收录单日的走势，以及相对上一份快照的变化。历史快照可以逐份打开。
+页面是静态的，没有后端。网签页展示最新快照、月度和已收录单日的走势，以及相对上一份快照的变化。历史快照可以逐份打开。小区页列出公告匹配到的小区、程序证据和贝壳成交套数，按 2026-11-28 的套数规则给出档位或「未分档」。`fangdi.json` 和 `site/tiers/data.json` 都在仓库里，合并后也可以用 jsDelivr 按仓库文件取，例如 `https://cdn.jsdelivr.net/gh/PeggyZhu/huchai-feed@main/site/tiers/data.json`。页面本身不依赖这个 CDN，构建结果里用的是相对路径。
 
 ## 源站拦截（2026-11-14）
 
